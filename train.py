@@ -10,16 +10,16 @@ import torch.optim as optim
 from utils import get_loaders, save_predictions_as_images, check_accuracy, save_checkpoint, load_checkpoint
 
 
-LEARNING_RATE=1e-4
+LEARNING_RATE=1e-5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-IMAGE_HEIGHT=300
-IMAGE_WIDTH=300
-BATCH_SIZE = 5
+IMAGE_HEIGHT=160
+IMAGE_WIDTH=240
+BATCH_SIZE = 16
 WEIGHT_DECAY = 0
 EPOCHS = 250
 NUM_WORKERS = 2
 PIN_MEMORY = True
-LOAD_MODEL = True
+LOAD_MODEL = False
 LOAD_MODEL_FILE = 'my_checkpoint.pth'
 TRAIN_IMG_DIR = '/home/dulanj/Learn/Unet-Pytorch/data/train'
 TEST_IMG_DIR = '/home/dulanj/Learn/Unet-Pytorch/data/test'
@@ -50,7 +50,7 @@ def main():
     
     train_transform = A.Compose(
         [
-            A.Resize(width=IMAGE_HEIGHT, height=IMAGE_WIDTH),
+            A.Resize(width=IMAGE_WIDTH, height=IMAGE_HEIGHT),
             A.Rotate(limit=30, p=1, border_mode=cv2.BORDER_CONSTANT),
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.1),
