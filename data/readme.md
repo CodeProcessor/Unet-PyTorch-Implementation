@@ -1,14 +1,17 @@
-Source         : /home/dulanj/Datasets/Car_Segmentation/all
-Destination    : /home/dulanj/Learn/Unet-Pytorch/data
-======================================
-Class images contains 5088 images
-100 files copied to train directory
-20 files copied to test directory
-20 files copied to val directory
----------------------------------------
-Class masks contains 5088 images
-100 files copied to train directory
-20 files copied to test directory
-20 files copied to val directory
----------------------------------------
-======================================
+# Dataset preperation
+
+## Download dataset
+Link - https://www.kaggle.com/c/carvana-image-masking-challenge
+
+Unzip two files to one location
+
+```angular2html
+unzip train.zip
+unzip train_masks.zip
+```
+
+Change and run create_dataset.sh script to create the dataset
+
+```angular2html
+bash create_dataset.sh
+```
