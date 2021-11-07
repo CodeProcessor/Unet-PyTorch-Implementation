@@ -32,6 +32,7 @@ def get_loaders(
 
     train_ds = CarvanaDataset(
         data_dir=TRAIN_IMG_DIR,
+        mixup=True,
         transforms=train_transform
     )
 

@@ -56,9 +56,9 @@ def main():
     train_transform = A.Compose(
         [
             A.Resize(width=IMAGE_WIDTH, height=IMAGE_HEIGHT),
-            A.Rotate(limit=30, p=1, border_mode=cv2.BORDER_CONSTANT),
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.1),
+            # A.Rotate(limit=30, p=1, border_mode=cv2.BORDER_CONSTANT),
+            # A.HorizontalFlip(p=0.5),
+            # A.VerticalFlip(p=0.1),
             A.Normalize(
                 mean=[0.0, 0.0, 0.0],
                 std=[1.0, 1.0, 1.0],
