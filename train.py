@@ -1,28 +1,34 @@
-import torch
-from torch._C import device
-import torch.nn as nn
+import datetime
+import os.path as osp
+
 import albumentations as A
+import cv2
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
-import cv2
+
 from model import UNET
-import torch.optim as optim
-from utils import get_loaders, save_predictions_as_images, check_accuracy, save_checkpoint, load_checkpoint
+from utils import get_loaders, save_predictions_as_images, check_accuracy, save_checkpoint, load_checkpoint, \
+    create_directory
 
-
-LEARNING_RATE=1e-5
+LEARNING_RATE = 1e-5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-IMAGE_HEIGHT=160
-IMAGE_WIDTH=240
+IMAGE_HEIGHT = 160
+IMAGE_WIDTH = 240
 BATCH_SIZE = 16
 WEIGHT_DECAY = 0
 EPOCHS = 250
 NUM_WORKERS = 2
 PIN_MEMORY = True
 LOAD_MODEL = False
-LOAD_MODEL_FILE = 'my_checkpoint.pth'
-TRAIN_IMG_DIR = '/home/dulanj/Learn/Unet-Pytorch/data/train'
-TEST_IMG_DIR = '/home/dulanj/Learn/Unet-Pytorch/data/test'
+
+EXPERIMENT_NAME = datetime.datetime.now().strftime("%Y-%b-%d_%Hh-%Mm-%Ss_") + "experiment_1"
+SAVE_MODEL_LOCATION = 'data/saved_models'
+LOAD_MODEL_FILE = 'data/saved_models/my_checkpoint.pth'
+TRAIN_IMG_DIR = 'data/dataset/train'
+TEST_IMG_DIR = 'data/dataset/test'
 
 
 def train_fn(loader, model, optimizer, loss_fn, scaler):
@@ -36,7 +42,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
         with torch.cuda.amp.autocast():
             predictions = model(data)
             loss = loss_fn(predictions, targets)
-        
+
         optimizer.zero_grad()
         scaler.scale(loss).backward()
         scaler.step(optimizer)
@@ -47,7 +53,6 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
 
 def main():
-    
     train_transform = A.Compose(
         [
             A.Resize(width=IMAGE_WIDTH, height=IMAGE_HEIGHT),
@@ -55,9 +60,9 @@ def main():
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.1),
             A.Normalize(
-                    mean=[0.0, 0.0, 0.0],
-                    std=[1.0, 1.0, 1.0],
-                    max_pixel_value=255.0
+                mean=[0.0, 0.0, 0.0],
+                std=[1.0, 1.0, 1.0],
+                max_pixel_value=255.0
             ),
             ToTensorV2(),
         ]
@@ -67,16 +72,16 @@ def main():
         [
             A.Resize(width=IMAGE_HEIGHT, height=100),
             A.Normalize(
-                    mean=[0.0, 0.0, 0.0],
-                    std=[1.0, 1.0, 1.0],
-                    max_pixel_value=255.0
+                mean=[0.0, 0.0, 0.0],
+                std=[1.0, 1.0, 1.0],
+                max_pixel_value=255.0
             ),
             ToTensorV2()
         ]
     )
 
     model = UNET(in_channels=3, out_channels=1).to(device=DEVICE)
-    loss_fn = nn.BCEWithLogitsLoss() #cross entropy loss
+    loss_fn = nn.BCEWithLogitsLoss()  # cross entropy loss
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     train_loader, val_loader = get_loaders(
@@ -103,11 +108,12 @@ def main():
             "optimizer": optimizer.state_dict()
         }
 
-        save_checkpoint(checkpoint, filename=LOAD_MODEL_FILE)
+        save_checkpoint(checkpoint, filename=osp.join(create_directory(osp.join(SAVE_MODEL_LOCATION, EXPERIMENT_NAME)),
+                                                      f"my_checkpoint_{epoch}.pth"))
 
         # check accuracy
         check_accuracy(val_loader, model, device=DEVICE)
-        
+
         # print some examples to a folder
         save_predictions_as_images(val_loader, model, device=DEVICE, directory="saved_images")
 

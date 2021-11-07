@@ -1,3 +1,4 @@
+import os
 
 from model import DEVICE
 import torch
@@ -6,6 +7,10 @@ import torchvision
 from dataset import CarvanaDataset
 from torch.utils.data import DataLoader
 
+def create_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return directory
 
 def save_checkpoint(state, filename="my_checkpoint.pth"):
     print(f"Saving checkpoint as : {filename}")
