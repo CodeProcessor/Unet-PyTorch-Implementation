@@ -30,6 +30,13 @@ LOAD_MODEL_FILE = 'data/saved_models/my_checkpoint.pth'
 TRAIN_IMG_DIR = 'data/dataset/train'
 TEST_IMG_DIR = 'data/dataset/test'
 
+import neptune.new as neptune
+
+run = neptune.init(
+    project="dulanj/Unet",
+    api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiIxZjlmNzhlYi0wOWFmLTRmNjktYTk4MC01ODc3MTJkOTVlODEifQ==",
+)  # your credentials
+
 
 def train_fn(loader, model, optimizer, loss_fn, scaler):
     loop = tqdm(loader)
@@ -50,6 +57,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
         # update tqdm loop
         loop.set_postfix(loss=loss.item())
+    run["train/loss"].log(loss)
 
 
 def main():
@@ -112,11 +120,20 @@ def main():
                                                       f"my_checkpoint_{epoch}.pth"))
 
         # check accuracy
-        check_accuracy(val_loader, model, device=DEVICE)
+        accuracy, dice_score = check_accuracy(val_loader, model, device=DEVICE)
+        run["eval/accuracy"].log(accuracy)
+        run["eval/dice_score"].log(dice_score)
 
         # print some examples to a folder
         save_predictions_as_images(val_loader, model, device=DEVICE, directory="saved_images")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        import traceback
+        traceback.print_exc()
+    finally:
+        run.stop()
+

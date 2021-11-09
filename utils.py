@@ -76,10 +76,13 @@ def check_accuracy(loader, model, device="cuda"):
             num_correct += (preds == y).sum()
             num_pixels += torch.numel(preds)
             dice_score += (2 * (preds * y).sum()) / ((preds+y).sum() + 1e-8)
-    
-    print(f"{num_correct}/{num_pixels} with accuracy {num_correct*100/num_pixels}%")
-    print(f"Dice score: {dice_score/ len(loader)}")
+
+    accuracy =  num_correct*100.0/num_pixels
+    dice_score = dice_score/ len(loader)
+    print(f"{num_correct}/{num_pixels} with accuracy {accuracy}%")
+    print(f"Dice score: {dice_score}")
     model.train()
+    return accuracy, dice_score
 
 
 def save_predictions_as_images(loader, model, directory = "saved_images", device="cuda"):
